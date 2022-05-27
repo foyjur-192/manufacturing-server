@@ -108,7 +108,7 @@ app.get('/ordering', async (req, res) => {
 
 });
 
-
+//Order posting server
   app.post('/ordering', async (req, res) => {
     const ordering = req.body;
     const result = await orderCollection.insertOne(ordering);
