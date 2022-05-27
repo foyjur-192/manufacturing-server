@@ -87,7 +87,7 @@ app.get('/review', async (req, res) => {
   const review = await cursor.toArray();
   res.send(review);
 });
-
+//add review
 app.post('/reviews', async (req, res) => {
   const reviews = req.body;
   const result = await reviewCollection.insertOne(reviews);
