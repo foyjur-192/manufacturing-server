@@ -1,7 +1,7 @@
 const express = require('express')
 const cors = require ('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
-var jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const res = require('express/lib/response');
 const app = express()
@@ -16,21 +16,22 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 
 
-function verifyJWT(req, res, next ){
-  const authHeader = req.headers.authorization;
+// function verifyJWT (req, res, next){
+//   const authHeader = req.headers.authorization;
+//   if(!authHeader){
+//     return res.status(401).send({message: 'UnAuthorized user'});
+//   }
+//   const token = authHeader.split(' ')[1];
+//   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
+  
+//     if(err){
+//     return res.status(403).send({message: 'Forbidden access'})
+//     }
+//     req.decoded = decoded;
+//     next();
+//   });
 
-  if(!authHeader){
-    return res.status(401).send({message: 'unAuthorized access'})
-  }
-  const token = authHeader.split(' ')[1];
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
-    if(err){
-      return res.status(403).send({message: 'Forbidden access'})
-    }
-   req.decoded = decoded;
-   next();
-   });
-}
+// }
 
 
 
@@ -49,7 +50,11 @@ app.get('/service',  async (req, res) => {
     res.send(services);
 });
 
-
+app.post('/service', async (req, res) => {
+  const service = req.body;
+  const result = await serviceCollection.insertOne(service);
+   res.send({success: true,  result});
+})
 
 
 //Ac control database
@@ -93,10 +98,13 @@ app.post('/reviews', async (req, res) => {
 const orderCollection = client.db('got_order').collection('order')
 
 app.get('/ordering', async (req, res) => {
-  const query = {};
-  const cursor = orderCollection.find(query);
-  const orders = await cursor.toArray();
-  res.send(orders);
+  const user = req.query.user;
+    const query = {user: user};
+    const ordering = await orderCollection.find(query).toArray();
+    res.send(ordering);
+ 
+
+
 });
 
 
@@ -134,8 +142,8 @@ const updateDoc = {
 $set: user,
 };
 const result = await userCollection.updateOne(filter, updateDoc,options);
-const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
-res.send({result, token});
+const accessToken = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
+res.send({result, accessToken});
 
 })
 
